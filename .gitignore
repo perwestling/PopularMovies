@@ -25,3 +25,7 @@ proguard/
 
 # Log Files
 *.log
+
+# API key
+app/src/main/res/values/api_key.xml
+

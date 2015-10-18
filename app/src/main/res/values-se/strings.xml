@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Populära Filmer</string>
+    <string name="action_settings">Inställningar</string>
+    <string name="action_map">Visa vald position</string>
+    <string name="action_share">Dela</string>
+    <string name="detail_name">Detaljerad information</string>
+    <string name="title_activity_detail">Detaljerad vy</string>
+    <string name="title_activity_settings">Inställningar</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Label for the location preference [CHAR LIMIT=30] -->
+    <string name="pref_location_title">Position</string>
+    <!-- Label for the unit preference [CHAR LIMIT=30] -->
+    <string name="pref_unit_title">Enhet</string>
+</resources>
