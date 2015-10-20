@@ -29,7 +29,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.android.popularmovies.parse.MovieDbData;
+import com.squareup.picasso.Picasso;
+
+import java.text.SimpleDateFormat;
 
 public class DetailActivity extends ActionBarActivity {
 
@@ -69,7 +75,7 @@ public class DetailActivity extends ActionBarActivity {
 
         private static final String MOVIES_LIST_SHARE_HASHTAG = " #PopularMovies";
 
-        private String mMoviesData;
+        private MovieDbData mMoviesData;
 
         public DetailFragment() {
             setHasOptionsMenu(true);
@@ -97,14 +103,41 @@ public class DetailActivity extends ActionBarActivity {
 
             Intent intent = getActivity().getIntent();
             View rootView = inflater.inflate(R.layout.fragement_detail, container, false);
-            if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
-                mMoviesData = intent.getExtras().getString(Intent.EXTRA_TEXT);
-                TextView textView = (TextView) rootView.findViewById(R.id.detail_text);
-                if (textView == null) {
-                    System.out.println("Text view does not exist!");
-                } else {
-                    textView.setText(mMoviesData);
-                }
+            if (intent == null || !intent.hasExtra(MovieDbData.class.getSimpleName())) {
+                return rootView;
+            }
+            mMoviesData = (MovieDbData) intent.getSerializableExtra(MovieDbData.class.getSimpleName());
+
+            ImageView thumbnail = (ImageView) rootView.findViewById(R.id.poster_thumbnail);
+            if (thumbnail != null) {
+                Picasso.with(getContext()).load("http://image.tmdb.org/t/p/w185" + mMoviesData.posterPath).into(thumbnail);
+            }
+            TextView originalTitleText = (TextView) rootView.findViewById(R.id.original_title);
+            if (originalTitleText != null) {
+                originalTitleText.setText(mMoviesData.originalTitle);
+            }
+
+            TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date);
+            if (releaseDateText != null) {
+                if (null == mMoviesData.releaseDate)
+                    releaseDateText.setText(R.string.release_date_missing);
+                else
+                    releaseDateText.setText(new SimpleDateFormat("yyyy-MM-dd").
+                            format(mMoviesData.releaseDate));
+            }
+
+            TextView userRatingText = (TextView) rootView.findViewById(R.id.user_rating);
+            if (userRatingText != null) {
+                String userRating = String.format("%.1f", mMoviesData.userRating);
+                userRatingText.setText(userRating);
+            }
+
+            TextView synopsisText = (TextView) rootView.findViewById(R.id.synopsis);
+            if (synopsisText != null) {
+                if (null == mMoviesData.plotSynopsis || "null".equals(mMoviesData.plotSynopsis))
+                    synopsisText.setText(R.string.synopsis_missing);
+                else
+                    synopsisText.setText(mMoviesData.plotSynopsis);
             }
             return rootView;
         }

@@ -4,7 +4,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -19,7 +22,10 @@ public class TvSeriesListParser {
             if (containsJson(jsonString, "results")) {
                 JSONArray jsonResults = jsonString.getJSONArray("results");
                 for (int i = 0; i < jsonResults.length(); ++i) {
-                    result.add(parseResult(jsonResults.getJSONObject(i)));
+                    MovieDbData parsed = parseResult(jsonResults.getJSONObject(i));
+                    if (parsed != null) {
+                        result.add(parsed);
+                    }
                 }
             } else if (containsJson(jsonString, "status_code")) {
                 throw new ParseException("Error message returned: " + input);
@@ -27,7 +33,7 @@ public class TvSeriesListParser {
                 throw new ParseException("Unknown return: " + input);
             }
         } catch (JSONException e) {
-            throw new ParseException("Failed to parse: " + input, e);
+            throw new ParseException("Failed to parse tv: " + e.getMessage() + "\nInput:" + input, e);
         }
         return result;
     }
@@ -44,10 +50,30 @@ public class TvSeriesListParser {
     private static MovieDbData parseResult(JSONObject jsonResult) throws JSONException, ParseException {
         MovieDbData data = new MovieDbData();
         try {
-            data.title = jsonResult.getString("name");
+            data.originalTitle = jsonResult.getString("original_name");
+            data.plotSynopsis = jsonResult.getString("overview");
+            data.releaseDate = makeDate(jsonResult.getString("first_air_date"));
+            data.userRating = jsonResult.getDouble("vote_average");
+            data.posterPath = jsonResult.getString("poster_path");
+            if (data.posterPath == null || data.posterPath.equals("null")) {
+                return null;
+            }
         } catch (JSONException e) {
-            throw new ParseException("Failed to parse name from: " + jsonResult.toString(2), e);
+            throw new ParseException("Failed to parse tv result: " + e.getMessage()
+                    + "\nResult: " + jsonResult.toString(2), e);
         }
         return data;
+    }
+
+    private static Date makeDate(String dateInput) throws JSONException {
+        if (dateInput.equals("null")) {
+            return null;
+        }
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            return format.parse(dateInput);
+        } catch (java.text.ParseException e) {
+            throw new JSONException("Incorrect date " + dateInput + ": " + e.getMessage());
+        }
     }
 }

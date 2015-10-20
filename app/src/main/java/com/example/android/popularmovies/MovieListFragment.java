@@ -1,21 +1,23 @@
 package com.example.android.popularmovies;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Movie;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -23,6 +25,7 @@ import com.example.android.popularmovies.parse.MovieDbData;
 import com.example.android.popularmovies.parse.MovieListParser;
 import com.example.android.popularmovies.parse.ParseException;
 import com.example.android.popularmovies.parse.TvSeriesListParser;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 
@@ -41,6 +44,7 @@ import java.util.List;
  */
 public class MovieListFragment extends Fragment {
 
+    private static final String LOG_TAG = MovieListFragment.class.getSimpleName();
     private List<MovieDbData> moviesData = new ArrayList<>();
     private ArrayAdapter<MovieDbData> adapter;
 
@@ -66,10 +70,10 @@ public class MovieListFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Log.d(LOG_TAG, "Click on " + moviesData.get(position));
                 Intent showDetailsIntent = new Intent(getActivity(), DetailActivity.class);
                 showDetailsIntent.setAction(Intent.ACTION_SEND);
-                showDetailsIntent.putExtra(Intent.EXTRA_TEXT, moviesData.get(position).title);
-                showDetailsIntent.setType("text/plain");
+                showDetailsIntent.putExtra(MovieDbData.class.getSimpleName(), moviesData.get(position));
 
                 startActivity(showDetailsIntent);
             }
@@ -84,25 +88,6 @@ public class MovieListFragment extends Fragment {
         updateMovies();
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.movieslistfragment, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            updateMovies();
-            return true;
-        }
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     private void updateMovies() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sortOrder =
@@ -113,9 +98,41 @@ public class MovieListFragment extends Fragment {
         task.execute();
     }
 
+    private static class ImageArrayAdaptor extends ArrayAdapter<MovieDbData> {
+
+        private final Context context;
+        private final int layoutResourceId;
+        private final List<MovieDbData> moviesData;
+
+        public ImageArrayAdaptor(Context context, int layoutResourceId, List<MovieDbData> database) {
+            super(context, R.layout.list_item, database);
+            this.context = context;
+            this.layoutResourceId = layoutResourceId;
+            this.moviesData = database;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View row = convertView;
+            ImageView imgView = null;
+
+            if (row == null) {
+                LayoutInflater inflater = ((Activity) context).getLayoutInflater();
+                row = inflater.inflate(layoutResourceId, parent, false);
+
+                imgView = (ImageView) row.findViewById(R.id.list_item_view);
+                row.setTag(imgView);
+            } else {
+                imgView = (ImageView) row.getTag();
+            }
+            
+            MovieDbData data = moviesData.get(position);
+            Picasso.with(context).load("http://image.tmdb.org/t/p/w185" + data.posterPath).into(imgView);
+            return row;
+        }
+    }
     private ArrayAdapter<MovieDbData> createAdaptor() {
-        return new ArrayAdapter<MovieDbData>(getActivity(),
-                R.layout.list_item_forecast, R.id.list_item_forecast_textview, moviesData);
+        return new ImageArrayAdaptor(getActivity(), R.layout.list_item, moviesData);
     }
 
     class FetchMoviesListTask extends AsyncTask<String, Void, List<MovieDbData>> {
@@ -230,13 +247,13 @@ public class MovieListFragment extends Fragment {
                 throws JSONException {
 
             try {
-                if (mediaType == "movie") {
+                if (mediaType.equals("movie")) {
                     return MovieListParser.parse(jsonString);
                 } else {
                     return TvSeriesListParser.parse(jsonString);
                 }
             } catch (ParseException e) {
-                Log.e(LOG_TAG, "Failed to parse " + jsonString, e);
+                Log.e(LOG_TAG, "Parse failure: " + e.getMessage() + ". Input: " + jsonString, e);
                 return null;
             }
         }

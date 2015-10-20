@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Calendar;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,10 +52,10 @@ public class MovieListParserTest {
     @Test
     public void shouldThrowIfMissingTitle() throws Exception {
         try {
-            MovieListParser.parse(makeMovieListJson(MOVIE_1.replace("\"title\":\"Jurassic World\",", "")));
+            MovieListParser.parse(makeMovieListJson(MOVIE_1.replace("\"original_title\":\"Jurassic World\",", "")));
             fail("Should have thrown");
         } catch (ParseException e) {
-            assertThat(e.getMessage(), containsString("Failed to parse title"));
+            assertThat(e.getMessage(), containsString("Failed to parse movie result"));
         }
     }
 
@@ -63,7 +64,7 @@ public class MovieListParserTest {
         List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1));
         assertThat(result, hasSize(1));
         MovieDbData movie = result.get(0);
-        assertThat(movie.title, is("Jurassic World"));
+        assertThat(movie.originalTitle, is("Jurassic World"));
     }
 
     @Test
@@ -71,11 +72,64 @@ public class MovieListParserTest {
         List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
         assertThat(result, hasSize(2));
         MovieDbData movie = result.get(1);
-        assertThat(movie.title, is("The Martian"));
+        assertThat(movie.originalTitle, is("The Martian"));
+    }
+
+    @Test
+    public void shouldParsePosterPath() throws Exception {
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
+        assertThat(result, hasSize(2));
+        MovieDbData movie = result.get(1);
+        assertThat(movie.posterPath, is("/AjbENYG3b8lhYSkdrWwlhVLRPKR.jpg"));
+    }
+
+    @Test
+    public void shouldParsePlotSynopsisOfMovies() throws Exception {
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
+        assertThat(result, hasSize(2));
+        MovieDbData movie = result.get(1);
+        assertThat(movie.plotSynopsis, startsWith("During a manned mission to Mars, Astronaut Mark Watney"));
+    }
+
+    @Test
+    public void shouldParseUserRatingOfMovies() throws Exception {
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
+        assertThat(result, hasSize(2));
+        MovieDbData movie = result.get(1);
+        assertThat(movie.userRating, is(7.7));
+    }
+
+    @Test
+    public void shouldParseReleaseDateOfMovies() throws Exception {
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
+        assertThat(result, hasSize(2));
+        MovieDbData movie = result.get(1);
+        assertThat(movie.releaseDate.toString(), is(createDate(2015, 10, 2)));
+    }
+
+    @Test
+    public void shouldHandleEntryWithoutReleaseDate() throws Exception {
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_2.replace(
+                "\"release_date\":\"2015-10-02\",",
+                "\"release_date\":\"null\",")));
+        assertThat(result.get(0).releaseDate, is(nullValue()));
+    }
+
+    @Test
+    public void shouldIngoreEntriesWithoutSnapshot() throws Exception {
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_2.replace(
+                "\"poster_path\":\"/AjbENYG3b8lhYSkdrWwlhVLRPKR.jpg\"",
+                "\"poster_path\":\"null\"")));
+        assertThat(result.size(), is(0));
     }
 
     private String makeMovieListJson(String... movie) {
         return String.format(MOVIE_LIST_PATTERN, StringUtils.join(movie, ","));
     }
 
+    private String createDate(int year, int month, int day) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month - 1, day, 0, 0, 0);
+        return cal.getTime().toString();
+    }
 }
