@@ -1,7 +1,6 @@
 package com.example.android.popularmovies.parse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +37,18 @@ public class MovieListParserTest {
     }
 
     @Test
+    public void shouldThrowIfErrorMessage() throws Exception {
+        try {
+            MovieListParser.parse("{\"status_code\":7,\"status_message\":\"Invalid API key: You must be granted a valid key.\"}");
+            fail("Should have thrown");
+        } catch (ParseException e) {
+            assertThat(e.getMessage(), containsString("status_code"));
+            assertThat(e.getMessage(), containsString("status_message"));
+            assertThat(e.getMessage(), containsString("Invalid API key"));
+        }
+    }
+
+    @Test
     public void shouldThrowIfMissingTitle() throws Exception {
         try {
             MovieListParser.parse(makeMovieListJson(MOVIE_1.replace("\"title\":\"Jurassic World\",", "")));
@@ -49,17 +60,17 @@ public class MovieListParserTest {
 
     @Test
     public void shouldParseTitleOfMovie() throws Exception {
-        List<MovieData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1));
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1));
         assertThat(result, hasSize(1));
-        MovieData movie = result.get(0);
+        MovieDbData movie = result.get(0);
         assertThat(movie.title, is("Jurassic World"));
     }
 
     @Test
     public void shouldParseTitleOfMovies() throws Exception {
-        List<MovieData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
+        List<MovieDbData> result = MovieListParser.parse(makeMovieListJson(MOVIE_1, MOVIE_2));
         assertThat(result, hasSize(2));
-        MovieData movie = result.get(1);
+        MovieDbData movie = result.get(1);
         assertThat(movie.title, is("The Martian"));
     }
 
@@ -67,13 +78,4 @@ public class MovieListParserTest {
         return String.format(MOVIE_LIST_PATTERN, StringUtils.join(movie, ","));
     }
 
-    @Test
-    public void testMountainViewThirdDay() throws JSONException {
-//        assertEquals(14.1, WeatherDataParser.getMaxTemperatureForDay(WEATHER_DATA_MTV_JUN_4, 2), DELTA);
-    }
-
-    @Test
-    public void testFremontLastDay() throws JSONException {
-//        assertEquals(16.75, WeatherDataParser.getMaxTemperatureForDay(WEATHER_DATA_FREMONT_JUN_4, 6), DELTA);
-    }
 }

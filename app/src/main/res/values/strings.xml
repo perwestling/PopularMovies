@@ -12,17 +12,17 @@
 
     <!-- Strings related to Settings -->
 
-    <!-- Key name for storing location in SharedPreferences [CHAR LIMIT=NONE] -->
-    <string name="pref_location_key" translatable="false">location</string>
-    <!-- Default location for the location preference [CHAR LIMIT=NONE] -->
-    <string name="pref_location_default" translatable="false">Linkoping,SE</string>
-    <!-- Label for the location preference [CHAR LIMIT=30] -->
-    <string name="pref_location_title">Location</string>
+    <!-- Key name for storing sort order in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_order_key" translatable="false">sort_order</string>
+    <!-- Default location for the sort order preference [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_order_default" translatable="false">popularity.desc</string>
+    <!-- Label for the sort order preference [CHAR LIMIT=30] -->
+    <string name="pref_sort_order_title">Sort order</string>
 
-    <!-- Label for the unit preference [CHAR LIMIT=30] -->
-    <string name="pref_unit_title">Unit</string>
-    <!-- Key name for storing unit in SharedPreferences [CHAR LIMIT=NONE] -->
-    <string name="pref_unit_key" translatable="false">unit</string>
-    <!-- Default unit for the unit preference [CHAR LIMIT=NONE] -->
-    <string name="pref_unit_default" translatable="false">metric</string>
+    <!-- Key name for storing media type in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_media_type_key" translatable="false">media_type</string>
+    <!-- Default location for the media type preference [CHAR LIMIT=NONE] -->
+    <string name="pref_media_type_default" translatable="false">movie</string>
+    <!-- Label for the sort order preference [CHAR LIMIT=30] -->
+    <string name="pref_media_type_title">Media type</string>
 </resources>

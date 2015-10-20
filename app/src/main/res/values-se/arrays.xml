@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_sort_order_entries">
+        <item>Mest populär</item>
+        <item>Bäst betyg</item>
+    </string-array>
+
+    <string-array name="pref_media_type_entries">
+        <item>Filmer</item>
+        <item>TV-serier</item>
+    </string-array>
+</resources>

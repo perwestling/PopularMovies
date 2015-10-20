@@ -9,8 +9,9 @@
 
     <!-- Strings related to Settings -->
 
-    <!-- Label for the location preference [CHAR LIMIT=30] -->
-    <string name="pref_location_title">Position</string>
-    <!-- Label for the unit preference [CHAR LIMIT=30] -->
-    <string name="pref_unit_title">Enhet</string>
+    <!-- Label for the sort order preference [CHAR LIMIT=30] -->
+    <string name="pref_sort_order_title">Sortering</string>
+
+    <!-- Label for the media type preference [CHAR LIMIT=30] -->
+    <string name="pref_media_type_title">Mediaval</string>
 </resources>

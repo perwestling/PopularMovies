@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parse a JSON string containing information about movies returned by themoviedb.org.
+ * Parse a JSON string containing information about TV series returned by themoviedb.org.
  */
-public class MovieListParser {
+public class TvSeriesListParser {
 
     public static List<MovieDbData> parse(String input) throws ParseException {
         List<MovieDbData> result = new ArrayList<>();
@@ -44,9 +44,9 @@ public class MovieListParser {
     private static MovieDbData parseResult(JSONObject jsonResult) throws JSONException, ParseException {
         MovieDbData data = new MovieDbData();
         try {
-            data.title = jsonResult.getString("title");
+            data.title = jsonResult.getString("name");
         } catch (JSONException e) {
-            throw new ParseException("Failed to parse title from: " + jsonResult.toString(2), e);
+            throw new ParseException("Failed to parse name from: " + jsonResult.toString(2), e);
         }
         return data;
     }

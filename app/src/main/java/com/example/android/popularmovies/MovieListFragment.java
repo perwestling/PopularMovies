@@ -7,7 +7,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,14 +17,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
-import com.example.android.popularmovies.parse.MovieData;
+import com.example.android.popularmovies.parse.MovieDbData;
 import com.example.android.popularmovies.parse.MovieListParser;
 import com.example.android.popularmovies.parse.ParseException;
+import com.example.android.popularmovies.parse.TvSeriesListParser;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,9 +33,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,8 +41,8 @@ import java.util.List;
  */
 public class MovieListFragment extends Fragment {
 
-    private List<String> moviesData = new ArrayList<>();
-    private ArrayAdapter<String> adapter;
+    private List<MovieDbData> moviesData = new ArrayList<>();
+    private ArrayAdapter<MovieDbData> adapter;
 
     public MovieListFragment() {
     }
@@ -62,7 +59,7 @@ public class MovieListFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_moviedb);
         adapter = createAdaptor();
         listView.setAdapter(adapter);
 
@@ -71,7 +68,7 @@ public class MovieListFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Intent showDetailsIntent = new Intent(getActivity(), DetailActivity.class);
                 showDetailsIntent.setAction(Intent.ACTION_SEND);
-                showDetailsIntent.putExtra(Intent.EXTRA_TEXT, moviesData.get(position));
+                showDetailsIntent.putExtra(Intent.EXTRA_TEXT, moviesData.get(position).title);
                 showDetailsIntent.setType("text/plain");
 
                 startActivity(showDetailsIntent);
@@ -108,29 +105,39 @@ public class MovieListFragment extends Fragment {
 
     private void updateMovies() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        //String value = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        FetchMoviesListTask task = new FetchMoviesListTask();
+        String sortOrder =
+                prefs.getString(getString(R.string.pref_sort_order_key), getString(R.string.pref_sort_order_default));
+        String mediaType =
+                prefs.getString(getString(R.string.pref_media_type_key), getString(R.string.pref_media_type_default));
+        FetchMoviesListTask task = new FetchMoviesListTask(sortOrder, mediaType);
         task.execute();
     }
 
-    private ArrayAdapter<String> createAdaptor() {
-        return new ArrayAdapter<String>(getActivity(),
+    private ArrayAdapter<MovieDbData> createAdaptor() {
+        return new ArrayAdapter<MovieDbData>(getActivity(),
                 R.layout.list_item_forecast, R.id.list_item_forecast_textview, moviesData);
     }
 
-    class FetchMoviesListTask extends AsyncTask<String, Void, List<MovieData>> {
+    class FetchMoviesListTask extends AsyncTask<String, Void, List<MovieDbData>> {
 
         private final String LOG_TAG = FetchMoviesListTask.class.getSimpleName();
+        private final String sortOrder;
+        private final String mediaType;
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
+        public FetchMoviesListTask(String sortOrder, String mediaType) {
+            this.sortOrder = sortOrder;
+            this.mediaType = mediaType;
+        }
+
         @Override
-        protected List<MovieData> doInBackground(String... strings) {
+        protected List<MovieDbData> doInBackground(String... strings) {
             try {
-                URL url = buildUrl();
+                URL url = buildUrl(sortOrder, mediaType);
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -179,15 +186,14 @@ public class MovieListFragment extends Fragment {
             }
         }
 
-        private URL buildUrl() throws MalformedURLException {
-            String sortOrder = "popularity.desc";
+        private URL buildUrl(String sortOrder, String mediaType) throws MalformedURLException {
 
             // Construct the URL for the Movie Database query
             // Possible parameters are available at the API page, version 3, at
             // https://www.themoviedb.org/documentation/api
             // Example: https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc?api_key=APIKEY
             final String MOVIES_DB_BASE_URL = "https://api.themoviedb.org/3";
-            final String OPERATION  = "/discover/movie";
+            final String OPERATION  = "/discover/" + mediaType;
             final String SORT_BY = "sort_by";
             final String APIKEY_PARAM = "api_key";
             final String APIKEY_VALUE = getResources().getString(R.string.api_key);
@@ -202,15 +208,15 @@ public class MovieListFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(List<MovieData> results) {
-            if (results == null)
-                return;
-            Log.d(LOG_TAG, "Got result: " + results);
-            moviesData.clear();
-            for(int i = 0; i < results.size(); ++i) {
-                moviesData.add(results.get(i).title);
+        protected void onPostExecute(List<MovieDbData> results) {
+            if (results == null) {
+                Toast.makeText(getActivity(), "Failed to get any data", Toast.LENGTH_LONG).show();
+            } else {
+                Log.d(LOG_TAG, "Got result: " + results);
+                moviesData.clear();
+                moviesData.addAll(results);
+                adapter.notifyDataSetChanged();
             }
-            adapter.notifyDataSetChanged();
         }
 
         /**
@@ -220,15 +226,18 @@ public class MovieListFragment extends Fragment {
          * Fortunately parsing is easy:  constructor takes the JSON string and converts it
          * into an Object hierarchy for us.
          */
-        private List<MovieData> getMovelistFromJson(String jsonString)
+        private List<MovieDbData> getMovelistFromJson(String jsonString)
                 throws JSONException {
 
             try {
-                List<MovieData> movies = MovieListParser.parse(jsonString);
-                return movies;
+                if (mediaType == "movie") {
+                    return MovieListParser.parse(jsonString);
+                } else {
+                    return TvSeriesListParser.parse(jsonString);
+                }
             } catch (ParseException e) {
-                e.printStackTrace();
-                return new ArrayList<>();
+                Log.e(LOG_TAG, "Failed to parse " + jsonString, e);
+                return null;
             }
         }
     }
