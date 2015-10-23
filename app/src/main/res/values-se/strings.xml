@@ -12,6 +12,9 @@
     <string name="user_rating">Användarbetyg</string>
     <string name="synopis">Beskrivning</string>
     <string name="synopsis_missing">Saknas</string>
+    <string name="action_about">Om</string>
+    <string name="about">Om</string>
+    <string name="version_label">Version</string>
 
     <!-- Strings related to Settings -->
 

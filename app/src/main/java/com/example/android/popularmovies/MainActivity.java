@@ -1,5 +1,10 @@
 package com.example.android.popularmovies;
 
+import android.app.AlertDialog;
+import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -35,6 +40,25 @@ public class MainActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
+        }
+
+        if (id == R.id.action_about) {
+/*
+            Fragment newFragment = new AboutFragment();
+            // consider using Java coding conventions (upper first char class names!!!)
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+
+            // Replace whatever is in the fragment_container view with this fragment,
+            // and add the transaction to the back stack
+            Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+            if (prev != null) {
+                transaction.remove(prev);
+            }
+            transaction.addToBackStack(null);
+
+            // Commit the transaction
+            transaction.commit();         */
+            new AboutFragment().show(getFragmentManager(), "dialog");
         }
 
         return super.onOptionsItemSelected(item);

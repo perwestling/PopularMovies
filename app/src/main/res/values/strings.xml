@@ -1,6 +1,7 @@
 <resources>
-    <string name="action_refresh" translatable="false">Refresh (Debug)</string>
-    <string name="hello_world" translatable="false">Hello World</string>
+    <!-- Update this version when release -->
+    <string name="version" translatable="false">0.1.0</string>
+    <string name="creator" translatable="false">Per Westling</string>
 
     <string name="app_name">Popular Movies</string>
     <string name="action_settings">Settings</string>
@@ -15,6 +16,8 @@
     <string name="user_rating">User rating</string>
     <string name="synopis">Description</string>
     <string name="synopsis_missing">Missing</string>
+    <string name="about">About</string>
+    <string name="version_label">Version</string>
 
     <!-- Strings related to Settings -->
 
@@ -31,4 +34,5 @@
     <string name="pref_media_type_default" translatable="false">movie</string>
     <!-- Label for the sort order preference [CHAR LIMIT=30] -->
     <string name="pref_media_type_title">Media type</string>
+    <string name="action_about">About</string>
 </resources>
