@@ -7,10 +7,10 @@
     <string name="title_activity_detail">Detaljerad vy</string>
     <string name="title_activity_settings">Inställningar</string>
     <string name="original_title">Orginaltitel</string>
-    <string name="release_date">Releasedatum</string>
+    <string name="release_date"><b>Releasedatum</b></string>
     <string name="release_date_missing">Saknas</string>
-    <string name="user_rating">Användarbetyg</string>
-    <string name="synopis">Beskrivning</string>
+    <string name="user_rating"><b>Användarbetyg</b></string>
+    <string name="synopis"><b>Beskrivning</b></string>
     <string name="synopsis_missing">Saknas</string>
     <string name="action_about">Om</string>
     <string name="about">Om</string>

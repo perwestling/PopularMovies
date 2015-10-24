@@ -17,6 +17,7 @@
 package com.example.android.popularmovies;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -115,6 +116,8 @@ public class DetailActivity extends ActionBarActivity {
             TextView originalTitleText = (TextView) rootView.findViewById(R.id.original_title);
             if (originalTitleText != null) {
                 originalTitleText.setText(mMoviesData.originalTitle);
+                originalTitleText.setTypeface(null, Typeface.BOLD);
+                originalTitleText.setTextSize(18);
             }
 
             TextView releaseDateText = (TextView) rootView.findViewById(R.id.release_date);

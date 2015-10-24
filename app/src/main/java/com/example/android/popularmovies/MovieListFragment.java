@@ -8,6 +8,7 @@ import android.graphics.Movie;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.text.Layout;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -63,7 +65,7 @@ public class MovieListFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_moviedb);
+        GridView listView = (GridView) rootView.findViewById(R.id.listview_moviedb);
         adapter = createAdaptor();
         listView.setAdapter(adapter);
 
@@ -154,36 +156,12 @@ public class MovieListFragment extends Fragment {
         @Override
         protected List<MovieDbData> doInBackground(String... strings) {
             try {
-                URL url = buildUrl(sortOrder, mediaType);
-
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
+                List<MovieDbData> allDbData = new ArrayList<>();
+                for (int page = 1; page <= 3; ++page) {
+                    List<MovieDbData> dbData = getMovieDbDatasForAPage(page);
+                    allDbData.addAll(dbData);
                 }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-
-                return getMovelistFromJson(buffer.toString());
+                return allDbData;
             } catch (IOException | JSONException e) {
                 Log.e(LOG_TAG, "Error: " + e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -203,7 +181,41 @@ public class MovieListFragment extends Fragment {
             }
         }
 
-        private URL buildUrl(String sortOrder, String mediaType) throws MalformedURLException {
+        @Nullable
+        private List<MovieDbData> getMovieDbDatasForAPage(int page) throws IOException, JSONException {
+            URL url = buildUrl(sortOrder, mediaType, page);
+
+            // Create the request to OpenWeatherMap, and open the connection
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            // Read the input stream into a String
+            InputStream inputStream = urlConnection.getInputStream();
+            StringBuffer buffer = new StringBuffer();
+            if (inputStream == null) {
+                // Nothing to do.
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                // But it does make debugging a *lot* easier if you print out the completed
+                // buffer for debugging.
+                buffer.append(line + "\n");
+            }
+
+            if (buffer.length() == 0) {
+                // Stream was empty.  No point in parsing.
+                return null;
+            }
+
+            return getMovelistFromJson(buffer.toString());
+        }
+
+        private URL buildUrl(String sortOrder, String mediaType, int page) throws MalformedURLException {
 
             // Construct the URL for the Movie Database query
             // Possible parameters are available at the API page, version 3, at
@@ -214,10 +226,12 @@ public class MovieListFragment extends Fragment {
             final String SORT_BY = "sort_by";
             final String APIKEY_PARAM = "api_key";
             final String APIKEY_VALUE = getResources().getString(R.string.api_key);
+            final String PAGE = "page";
 
             Uri builtUri = Uri.parse(MOVIES_DB_BASE_URL + OPERATION).buildUpon()
                     .appendQueryParameter(APIKEY_PARAM, APIKEY_VALUE)
                     .appendQueryParameter(SORT_BY, sortOrder)
+                    .appendQueryParameter(PAGE, Integer.toString(page))
                     .build();
             String urlString = builtUri.toString();
             Log.d(LOG_TAG, "Lookup movies using: " + urlString);
